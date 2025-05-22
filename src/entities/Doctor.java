@@ -3,6 +3,7 @@ package entities;
 import enums.AppointmentStatus;
 import enums.DoctorAvailability;
 import enums.Role;
+import exceptions.AppointmentNotFoundException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -10,17 +11,26 @@ import java.util.Scanner;
 
 public class Doctor extends User{
     private String specialization;
-    private final ArrayList<Appointments> appointments = new ArrayList<>();
-    private final ArrayList<MedicalReport> allMedicalReports = new ArrayList<>();
+    private ArrayList<Appointment> pendingAppointments;
+    private ArrayList<Appointment> acceptedAppointments = new ArrayList<>();
+    private ArrayList<MedicalReport> allMedicalReports;
     private DoctorAvailability doctorAvailability = DoctorAvailability.AVAILABLE;
 
     public Doctor(String name, String email, String phone_no) {
         super(name, email, phone_no);
         this.setRole(Role.DOCTOR);
+
     }
 
     public Doctor() {
-        setId();
+        this.setRole(Role.DOCTOR);
+        this.pendingAppointments = new ArrayList<>();
+        this.allMedicalReports = new ArrayList<>();
+        this.acceptedAppointments = new ArrayList<>();
+    }
+
+    public ArrayList<MedicalReport> viewAllMedicalReports(){
+        return allMedicalReports;
     }
 
     public void setSpecialization(String specialization){this.specialization = specialization;}
@@ -28,7 +38,7 @@ public class Doctor extends User{
 
     public DoctorAvailability getDoctorAvailabilityStatus() {return doctorAvailability;}
 
-    public MedicalReport givePatientDiagnosis(String patientId){
+    public MedicalReport givePatientDiagnosis(String patients_email){
         Scanner scanner = new Scanner(System.in);
         MedicalReport medicalReport = new MedicalReport();
         System.out.println("Diagnosis: ");
@@ -38,13 +48,13 @@ public class Doctor extends User{
         String notes = scanner.nextLine();
         medicalReport.setNotes(notes);
         System.out.println("Prescriptions");
-        Prescriptions prescriptions = new Prescriptions(patientId, getId());
+        Prescriptions prescriptions = new Prescriptions(patients_email, getId());
         prescriptions.setPrescriptionDetails();
         allMedicalReports.add(medicalReport);
         return medicalReport;
     }
 
-    public void setAppointmentStatus(String status){
+    public void setDoctorAvailabilityStatus(String status){
         if (status.equalsIgnoreCase("available")){
             this.doctorAvailability = DoctorAvailability.AVAILABLE;
         }
@@ -56,29 +66,43 @@ public class Doctor extends User{
         }
     }
 
-    public ArrayList<Appointments> viewListOfAppointments(){
-        return appointments;
+    public ArrayList<Appointment> viewListOfAcceptedAppointments(){
+        return acceptedAppointments;
     }
 
-    public void addAppointment(Appointments appointment){
+    private Appointment findAppointmentByID(String appID){
+        for (Appointment appointment : pendingAppointments){
+            if (appointment.getAppointmentId().equalsIgnoreCase(appID)){
+                return appointment;
+            }
+        }
+        throw new AppointmentNotFoundException("Appointment was not found");
+    }
+
+    public void acceptFromPending(String appID){
+        Appointment appointment = findAppointmentByID(appID);
         Scanner scanner = new Scanner(System.in);
         System.out.println("How many days till appointment: ");
         int number_of_days = scanner.nextInt();
         appointment.setScheduledDate(number_of_days);
-        appointments.add(appointment);
+        acceptedAppointments.add(appointment);
     }
 
     public void updateAppointmentStatuses(){
-        for (Appointments appointment : appointments){
+        for (Appointment appointment : acceptedAppointments){
             if (appointment.getScheduledDate().isEqual(LocalDate.now())){
                 appointment.setAppointmentStatus(AppointmentStatus.IN_PROGRESS);
             }
-            if (appointment.getScheduledDate().isBefore(LocalDate.now())){
+            if (appointment.getScheduledDate().isAfter(LocalDate.now())){
                 appointment.setAppointmentStatus(AppointmentStatus.CONFIRMED);
             }
-            if (appointment.getScheduledDate().isAfter(LocalDate.now())){
+            if (appointment.getScheduledDate().isBefore(LocalDate.now())){
                 appointment.setAppointmentStatus(AppointmentStatus.COMPLETED);
             }
         }
+    }
+
+    public void addToPending(Appointment appointment) {
+        pendingAppointments.add(appointment);
     }
 }

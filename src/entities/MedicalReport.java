@@ -3,12 +3,11 @@ package entities;
 import java.time.LocalDate;
 
 public class MedicalReport {
-    private Long recordId;
     private Long patientId;
     private Long doctorId;
     private String diagnosis;
     private String notes;
-    private Prescriptions prescriptions;
+    private Prescriptions prescriptions;     
     private LocalDate localDate;
 
     public MedicalReport() {

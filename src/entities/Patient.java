@@ -10,32 +10,48 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Patient extends User {
-    private final ArrayList<MedicalReport> medicalHistory = new ArrayList<>();
-    private final ArrayList<Appointments> appointmentsHistory = new ArrayList<>();
+    private ArrayList<MedicalReport> medicalHistory;
+    private ArrayList<Appointment> appointmentHistory;
 
     public Patient(Long id, String name, String email, String phone_no) {
         super(name, email, phone_no);
         this.setRole(Role.PATIENT);
-
     }
 
     public Patient() {
+        this.setRole(Role.PATIENT);
+        this.medicalHistory = new ArrayList<>();
+        this.appointmentHistory = new ArrayList<>();
     }
 
+    public void addToMedicalHistory(MedicalReport report){
+        medicalHistory.add(report);
+    }
+
+    public ArrayList<MedicalReport> viewMedicalHistory(){
+        return medicalHistory;
+    }
     public void bookAppointment(String doctors_name) {
+        boolean found = false;
         for (Doctor doctor : UserService.getList_of_doctors()) {
-            if (doctor.getName().equalsIgnoreCase(doctors_name) && doctor.getDoctorAvailabilityStatus() == DoctorAvailability.AVAILABLE) {
-                System.out.println("Doctor is available");
-                Appointments appointment = new Appointments(getId(), doctor.getId());
-                doctor.addAppointment(appointment);
-                appointment.setAppointmentStatus(AppointmentStatus.CONFIRMED);
-                appointmentsHistory.add(appointment);
-            } else if (doctor.getName().equalsIgnoreCase(doctors_name) && doctor.getDoctorAvailabilityStatus() == DoctorAvailability.NOT_AVAILABLE) {
-                System.out.println("Doctor is not available");
-            } else {
-                System.out.println("Doctor does not exist");
+            if (doctor.getName().equalsIgnoreCase(doctors_name)) {
+                found = true;
+                if (doctor.getDoctorAvailabilityStatus() == DoctorAvailability.AVAILABLE) {
+                    System.out.println("Doctor is available");
+                    Appointment appointment = new Appointment(getId(), doctor.getId());
+                    doctor.addToPending(appointment);
+                    appointment.setAppointmentStatus(AppointmentStatus.CONFIRMED);
+                    appointmentHistory.add(appointment);
+                } else {
+                    System.out.println("Doctor is not available");
+                }
+                break;
             }
         }
+        if (!found) {
+            System.out.println("Doctor does not exist");
+        }
+
     }
 
     public void searchForDoctor() {
@@ -44,6 +60,7 @@ public class Patient extends User {
         System.out.println("2. Search by specialization: ");
         System.out.println("3. Search by availability: ");
         int choice = scanner.nextInt();
+        scanner.nextLine();
         if (choice == 1) {
             System.out.println("Enter the name of the doctor: ");
             String name = scanner.nextLine();
@@ -58,14 +75,15 @@ public class Patient extends User {
             System.out.println("Invalid Input");
         }
     }
-    public ArrayList<Appointments> viewAppointmentHistory(){
+    public ArrayList<Appointment> viewAppointmentHistory(){
         Scanner scanner = new Scanner(System.in);
         System.out.println("1. View Upcoming Appointments");
         System.out.println("2. View Past Appointments");
         int choice =  scanner.nextInt();
+        scanner.nextLine();
         if (choice == 1){
-            ArrayList<Appointments> upcoming = new ArrayList<>();
-            for (Appointments appointment : appointmentsHistory){
+            ArrayList<Appointment> upcoming = new ArrayList<>();
+            for (Appointment appointment : appointmentHistory){
                 if (LocalDate.now().isBefore(appointment.getScheduledDate())){
                     upcoming.add(appointment);
                 }
@@ -73,8 +91,8 @@ public class Patient extends User {
             return upcoming;
         }
         else if (choice == 2){
-            ArrayList<Appointments> past = new ArrayList<>();
-            for (Appointments appointment : appointmentsHistory){
+            ArrayList<Appointment> past = new ArrayList<>();
+            for (Appointment appointment : appointmentHistory){
                 if (LocalDate.now().isAfter(appointment.getScheduledDate())){
                     past.add(appointment);
                 }
@@ -83,12 +101,12 @@ public class Patient extends User {
         }
         else{
             System.out.println("Invalid input!");
-            return null;
+            return new ArrayList<>();
         }
     }
     public void cancelOrRescheduleAppointment(){
         Scanner scanner = new Scanner(System.in);
-        for (Appointments appointment : appointmentsHistory){
+        for (Appointment appointment : appointmentHistory){
             if (appointment.getAppointmentStatus() == AppointmentStatus.CONFIRMED){
                 System.out.println(appointment);
                 System.out.println("Do you want to cancel or reschedule this appointment: ");

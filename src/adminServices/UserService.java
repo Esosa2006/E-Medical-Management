@@ -22,6 +22,23 @@ public class UserService {
         list_of_doctors.add(doctor2);
     }
 
+    public static Patient getPatientFromList(String email){
+        for (Patient patient : list_of_patients){
+            if (patient.getEmail().equalsIgnoreCase(email)){
+                return patient;
+            }
+        }
+        return null;
+    }
+    public static Doctor getDoctorFromList(String email){
+        for (Doctor doctor : list_of_doctors){
+            if (doctor.getEmail().equalsIgnoreCase(email)){
+                return doctor;
+            }
+        }
+        return null;
+    }
+
     public static void addNewPatient(Patient patient2){
         for (Patient patient : list_of_patients){
             if (patient.getEmail().equalsIgnoreCase(patient2.getEmail())){
@@ -76,11 +93,11 @@ public class UserService {
         if (number == 1) {
             for (Patient patient : list_of_patients) {
                 if (patient.getEmail().equalsIgnoreCase(email) && patient.getId().equalsIgnoreCase(user_id)) {
-                    System.out.println("Welcome back Doctor " + patient.getName());
+                    System.out.println("Welcome back " + patient.getName());
                     return true;
                 }
                 else {
-                    throw new UserNotFoundException("This id does not belong to this doctor!");
+                    throw new UserNotFoundException("This id does not belong to this patient!");
                 }
             }
         }
