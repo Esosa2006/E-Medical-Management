@@ -38,6 +38,27 @@ public class UserService {
         }
         return null;
     }
+    public static void patientMenu(){
+        System.out.println("What do you want to do");
+        System.out.println("1. Book Appointment");
+        System.out.println("2. Search for Doctor");
+        System.out.println("3. View Appointment History");
+        System.out.println("4. Cancel or Reschedule Appointment");
+        System.out.println("5. View Medical History");
+        System.out.println("6. Logout");
+    }
+
+    public static void doctorMenu(){
+        System.out.println("What would you like to do: ");
+        System.out.println("1. Give Patient Diagnosis");
+        System.out.println("2. Set your Availability Status");
+        System.out.println("3. View all your appointments");
+        System.out.println("4. Accept appointment");
+        System.out.println("5. Update Appointment Statuses");
+        System.out.println("6. View all Medical Reports");
+        System.out.println("7. Get list of patients");
+        System.out.println("8. Logout");
+    }
 
     public static void addNewPatient(Patient patient2){
         for (Patient patient : list_of_patients){
